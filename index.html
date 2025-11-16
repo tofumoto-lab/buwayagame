@@ -1,51 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Snake Game</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Upgraded Snake — Buwaya Edition</title>
 <style>
-    body {
-        background: #111;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        color: white;
-        font-family: Arial;
-    }
-    #gameCanvas {
-        background: #000;
-        margin-top: 20px;
-        border: 3px solid #0f0;
-    }
-    .controls {
-        margin-top: 20px;
-    }
-    .controls button {
-        padding: 15px;
-        margin: 3px;
-        font-size: 20px;
-        border-radius: 10px;
-    }
+  :root{
+    --bg:#050505;
+    --panel:#0b0b0b;
+    --neon:#00ff66;
+    --accent:#ffd700;
+    --muted:#9aa0a6;
+  }
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+    justify-content:center;
+    background: radial-gradient(circle at 10% 10%, #071018 0%, #020202 50%);
+    color:#e6eef6;
+    font-family: Inter, system-ui, Arial;
+    padding:28px;
+  }
+
+  .game-wrap{
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+  }
+
+  canvas{
+    width:400px;
+    height:400px;
+    image-rendering: pixelated;
+    border-radius:12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 18px rgba(0,255,102,0.06) inset;
+    background:linear-gradient(180deg,#001214 0%, #001a0f 100%);
+  }
+
+  .panel{
+    width:320px;
+    padding:14px;
+    border-radius:12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    border:1px solid rgba(255,255,255,0.03);
+  }
+
+  h1{ font-size:18px; margin:0 0 8px 0; color:var(--neon) }
+  .row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .btn{
+    background:linear-gradient(180deg,#0f2 0%, #0b7 100%);
+    border:none;padding:8px 12px;border-radius:8px;color:#001;
+    cursor:pointer;font-weight:700;
+  }
+  .btn.secondary{ background:linear-gradient(180deg,#333,#222); color:#eee; box-shadow: none }
+  .small{ font-size:13px; padding:6px 10px }
+
+  label{ font-size:13px; color:var(--muted) }
+
+  .score{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:10px;padding:8px;border-radius:8px;background:rgba(0,0,0,0.25)
+  }
+  .score .big{ font-size:20px; color:var(--neon); font-weight:800 }
+  .score .small{ font-size:12px; color:var(--muted) }
+
+  select, input[type=checkbox]{
+    background:transparent;color:inherit;border-radius:8px;border:1px solid rgba(255,255,255,0.04); padding:8px;
+  }
+
+  .controls-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
+
+  footer{ margin-top:12px; font-size:12px; color:var(--muted) }
+  .hint{ font-size:13px; color:var(--muted); margin-top:8px }
+  .badge{ background:linear-gradient(90deg,#ffd700,#ff8c00); padding:6px 8px;border-radius:8px;color:#111; font-weight:700 }
 </style>
 </head>
 <body>
 
-<h2 id="score">Score: ₱0B</h2>
-<canvas id="gameCanvas" width="400" height="400"></canvas>
+<div class="game-wrap">
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
 
-<br>
-<button id="startBtn">START GAME</button>
+  <div class="panel">
+    <h1>Buwaya Snake — Upgraded</h1>
 
-<div class="controls">
-    <div>
-        <button id="upBtn">⬆</button>
+    <div class="score">
+      <div>
+        <div style="font-size:13px;color:var(--muted)">Score</div>
+        <div class="big" id="scoreText">₱0B</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;color:var(--muted)">Best</div>
+        <div id="bestText" class="small">₱0B</div>
+      </div>
     </div>
-    <div>
-        <button id="leftBtn">⬅</button>
-        <button id="downBtn">⬇</button>
-        <button id="rightBtn">➡</button>
+
+    <div class="row">
+      <button id="startBtn" class="btn">START</button>
+      <button id="pauseBtn" class="btn secondary small">PAUSE</button>
+      <button id="resetBtn" class="btn secondary small">RESET</button>
     </div>
+
+    <div class="row">
+      <label>Difficulty</label>
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Hard</option>
+        <option value="insane">Insane</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label>Options</label>
+      <div style="margin-left:auto;">
+        <label title="Toggle obstacles"><input type="checkbox" id="obstaclesToggle" checked> Obstacles</label>
+      </div>
+    </div>
+
+    <div class="row controls-grid">
+      <button id="upBtn" class="btn small">⬆</button>
+      <div></div>
+      <button id="leftBtn" class="btn small">⬅</button>
+      <button id="downBtn" class="btn small">⬇</button>
+      <button id="rightBtn" class="btn small">➡</button>
+      <div></div>
+    </div>
+
+    <div class="hint">Swipe on the canvas (mobile) • Use arrow keys (desktop)</div>
+
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
+
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="badge" id="eventBadge">No Event</div>
+      <div style="flex:1"></div>
+      <div style="font-size:12px;color:var(--muted)">v1.0 • Tofu Moto</div>
+    </div>
+
+    <footer>
+      Replace these files in the same folder if you want custom graphics and sounds:
+      <div style="font-size:12px;color:var(--muted)">
+        buwaya2.png, money.png, money_gold.png, eat.wav, start.wav, gameover.wav, bgm.mp3
+      </div>
+    </footer>
+  </div>
 </div>
+
+<!-- Audio assets (replace with your files) -->
+<audio id="sndEat" src="eat.wav" preload="auto"></audio>
+<audio id="sndStart" src="start.wav" preload="auto"></audio>
+<audio id="sndGameOver" src="gameover.wav" preload="auto"></audio>
+<audio id="bgm" src="bgm.mp3" preload="auto" loop></audio>
 
 <script src="game.js"></script>
 </body>
