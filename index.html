@@ -3,158 +3,589 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Upgraded Snake — Buwaya Edition</title>
+<title>Buwaya Snake — Responsive</title>
 <style>
   :root{
-    --bg:#050505;
-    --panel:#0b0b0b;
-    --neon:#00ff66;
-    --accent:#ffd700;
-    --muted:#9aa0a6;
+    --bg1: #071018;
+    --bg2: #020202;
+    --neon: #00ff66;
+    --muted: #9aa0a6;
+    --panel-bg: rgba(255,255,255,0.02);
   }
+
+  /* Page layout */
+  html,body{ height:100%; margin:0; }
   body{
-    margin:0;
     min-height:100vh;
     display:flex;
-    gap:18px;
+    align-items:center;
+    justify-content:center;
+    background: radial-gradient(circle at 10% 10%, var(--bg1) 0%, var(--bg2) 50%);
+    color:#e6eef6;
+    font-family: Inter, system-ui, Arial, sans-serif;
+    padding:20px;
+    box-sizing:border-box;
+  }
+
+  /* Outer container controls alignment */
+  .container {
+    width: 100%;
+    max-width: 1100px; /* allow wide desktop */
+    display: flex;
+    gap:20px;
     align-items:flex-start;
     justify-content:center;
-    background: radial-gradient(circle at 10% 10%, #071018 0%, #020202 50%);
-    color:#e6eef6;
-    font-family: Inter, system-ui, Arial;
-    padding:28px;
   }
 
+  /* game area + panel */
   .game-wrap{
     display:flex;
-    gap:18px;
+    gap:20px;
     align-items:flex-start;
+    width:100%;
   }
 
-  canvas{
-    width:400px;
-    height:400px;
-    image-rendering: pixelated;
+  /* canvas container: keeps square aspect ratio & responsive */
+  .canvas-wrap {
+    flex: 0 1 420px; /* allow shrinking on small screens */
+    max-width: 60vh;  /* cap by viewport height for mobile landscape */
+    width: min(420px, 60vh, 48vw); /* smart width: prefer 420px but responsive */
+    aspect-ratio: 1 / 1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(180deg,#001214 0%, #001a0f 100%);
     border-radius:12px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 18px rgba(0,255,102,0.06) inset;
-    background:linear-gradient(180deg,#001214 0%, #001a0f 100%);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 18px rgba(0,255,102,0.03) inset;
+    overflow:hidden;
   }
 
+  canvas#gameCanvas{
+    width:100%;
+    height:100%;
+    display:block;
+    image-rendering: pixelated;
+  }
+
+  /* Right panel */
   .panel{
-    width:320px;
+    flex: 0 0 360px;
+    min-width:260px;
     padding:14px;
     border-radius:12px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    background: var(--panel-bg);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
     border:1px solid rgba(255,255,255,0.03);
+    box-sizing:border-box;
   }
 
   h1{ font-size:18px; margin:0 0 8px 0; color:var(--neon) }
-  .row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
-  .btn{
-    background:linear-gradient(180deg,#0f2 0%, #0b7 100%);
-    border:none;padding:8px 12px;border-radius:8px;color:#001;
-    cursor:pointer;font-weight:700;
-  }
-  .btn.secondary{ background:linear-gradient(180deg,#333,#222); color:#eee; box-shadow: none }
-  .small{ font-size:13px; padding:6px 10px }
-
-  label{ font-size:13px; color:var(--muted) }
-
   .score{
-    display:flex;justify-content:space-between;align-items:center;
-    margin-bottom:10px;padding:8px;border-radius:8px;background:rgba(0,0,0,0.25)
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:10px; padding:8px; border-radius:8px;
+    background: rgba(0,0,0,0.18);
   }
   .score .big{ font-size:20px; color:var(--neon); font-weight:800 }
   .score .small{ font-size:12px; color:var(--muted) }
 
-  select, input[type=checkbox]{
-    background:transparent;color:inherit;border-radius:8px;border:1px solid rgba(255,255,255,0.04); padding:8px;
+  .row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .row .spacer { flex:1; }
+
+  .btn{
+    background: linear-gradient(180deg,#0f2 0%, #0b7 100%);
+    border:none; padding:8px 12px; border-radius:8px; color:#001;
+    cursor:pointer; font-weight:700;
   }
+  .btn.secondary{ background: linear-gradient(180deg,#333,#222); color:#eee; box-shadow:none; }
+  .small{ font-size:13px; padding:6px 10px }
+
+  label{ font-size:13px; color:var(--muted) }
 
   .controls-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
 
-  footer{ margin-top:12px; font-size:12px; color:var(--muted) }
   .hint{ font-size:13px; color:var(--muted); margin-top:8px }
+
   .badge{ background:linear-gradient(90deg,#ffd700,#ff8c00); padding:6px 8px;border-radius:8px;color:#111; font-weight:700 }
+
+  /* Mobile: stack panel under canvas */
+  @media (max-width: 920px) {
+    .game-wrap { flex-direction: column-reverse; align-items:center; }
+    .panel { width: 100%; max-width: 420px; }
+    .canvas-wrap { width: min(92vw, 420px); max-width: none; }
+  }
+
+  /* Responsive controls inside panel (bigger buttons on mobile) */
+  .control-buttons { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:10px; }
+  .control-buttons button { min-width:56px; min-height:56px; font-size:20px; border-radius:8px; background:#111; color:var(--neon); border:none; box-shadow: 0 6px 18px rgba(0,255,102,0.06); }
+
+  /* header small */
+  .meta { font-size:12px; color:var(--muted); margin-top:8px; }
+
 </style>
 </head>
 <body>
 
-<div class="game-wrap">
-  <canvas id="gameCanvas" width="400" height="400"></canvas>
+<div class="container">
+  <div class="game-wrap">
+    <!-- responsive canvas wrapper -->
+    <div class="canvas-wrap">
+      <!-- internal logical canvas is 400x400 (keeps grid math stable) -->
+      <canvas id="gameCanvas" width="400" height="400" aria-label="Buwaya Snake game"></canvas>
+    </div>
 
-  <div class="panel">
-    <h1>Buwaya Snake — Upgraded</h1>
+    <!-- right panel -->
+    <div class="panel">
+      <h1>Buwaya Snake — Responsive</h1>
 
-    <div class="score">
-      <div>
-        <div style="font-size:13px;color:var(--muted)">Score</div>
-        <div class="big" id="scoreText">₱0B</div>
+      <div class="score">
+        <div>
+          <div style="font-size:13px;color:var(--muted)">Score</div>
+          <div class="big" id="scoreText">₱0B</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;color:var(--muted)">Best</div>
+          <div id="bestText" class="small">₱0B</div>
+        </div>
       </div>
-      <div style="text-align:right">
-        <div style="font-size:13px;color:var(--muted)">Best</div>
-        <div id="bestText" class="small">₱0B</div>
+
+      <div class="row">
+        <button id="startBtn" class="btn">START</button>
+        <button id="pauseBtn" class="btn secondary small">PAUSE</button>
+        <button id="resetBtn" class="btn secondary small">RESET</button>
       </div>
-    </div>
 
-    <div class="row">
-      <button id="startBtn" class="btn">START</button>
-      <button id="pauseBtn" class="btn secondary small">PAUSE</button>
-      <button id="resetBtn" class="btn secondary small">RESET</button>
-    </div>
-
-    <div class="row">
-      <label>Difficulty</label>
-      <select id="difficulty">
-        <option value="easy">Easy</option>
-        <option value="normal" selected>Normal</option>
-        <option value="hard">Hard</option>
-        <option value="insane">Insane</option>
-      </select>
-    </div>
-
-    <div class="row">
-      <label>Options</label>
-      <div style="margin-left:auto;">
+      <div class="row">
+        <label>Difficulty</label>
+        <select id="difficulty">
+          <option value="easy">Easy</option>
+          <option value="normal" selected>Normal</option>
+          <option value="hard">Hard</option>
+          <option value="insane">Insane</option>
+        </select>
+        <div class="spacer"></div>
         <label title="Toggle obstacles"><input type="checkbox" id="obstaclesToggle" checked> Obstacles</label>
       </div>
-    </div>
 
-    <div class="row controls-grid">
-      <button id="upBtn" class="btn small">⬆</button>
-      <div></div>
-      <button id="leftBtn" class="btn small">⬅</button>
-      <button id="downBtn" class="btn small">⬇</button>
-      <button id="rightBtn" class="btn small">➡</button>
-      <div></div>
-    </div>
-
-    <div class="hint">Swipe on the canvas (mobile) • Use arrow keys (desktop)</div>
-
-    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
-
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <div class="badge" id="eventBadge">No Event</div>
-      <div style="flex:1"></div>
-      <div style="font-size:12px;color:var(--muted)">v1.0 • Tofu Moto</div>
-    </div>
-
-    <footer>
-      Replace these files in the same folder if you want custom graphics and sounds:
-      <div style="font-size:12px;color:var(--muted)">
-        buwaya2.png, money.png, money_gold.png, eat.wav, start.wav, gameover.wav, bgm.mp3
+      <div class="control-buttons" aria-hidden="false">
+        <button id="upBtn">⬆</button>
+        <button id="leftBtn">⬅</button>
+        <button id="downBtn">⬇</button>
+        <button id="rightBtn">➡</button>
       </div>
-    </footer>
+
+      <div class="hint">Swipe on the canvas (mobile) • Use arrow keys (desktop)</div>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
+
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div class="badge" id="eventBadge">No Event</div>
+        <div style="flex:1"></div>
+        <div class="meta">v1.0 • Tofu Moto</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Audio assets (replace with your files) -->
+<!-- Audio (optional) -->
 <audio id="sndEat" src="eat.wav" preload="auto"></audio>
 <audio id="sndStart" src="start.wav" preload="auto"></audio>
 <audio id="sndGameOver" src="gameover.wav" preload="auto"></audio>
 <audio id="bgm" src="bgm.mp3" preload="auto" loop></audio>
 
-<script src="game.js"></script>
+<script>
+/* ===========================
+   Responsive Snake Game
+   - logical canvas: 400x400
+   - visual canvas scales with container
+   - proper DPR + scale handling for crisp pixels
+   =========================== */
+
+const LOGICAL_SIZE = 400; // internal game resolution
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// UI elements
+const scoreText = document.getElementById('scoreText');
+const bestText = document.getElementById('bestText');
+const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+const upBtn = document.getElementById('upBtn');
+const downBtn = document.getElementById('downBtn');
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
+const difficultySelect = document.getElementById('difficulty');
+const obstaclesToggle = document.getElementById('obstaclesToggle');
+const eventBadge = document.getElementById('eventBadge');
+
+const sndEat = document.getElementById('sndEat');
+const sndStart = document.getElementById('sndStart');
+const sndGameOver = document.getElementById('sndGameOver');
+const bgm = document.getElementById('bgm');
+
+/* Images (replace if needed) */
+const headImage = new Image();
+const foodImage = new Image();
+const goldFoodImage = new Image();
+headImage.src = 'buwaya2.png';
+foodImage.src = 'money.png';
+goldFoodImage.src = 'money_gold.png';
+
+/* Game config & state */
+let gridSize = 20; // will adjust per difficulty
+let tileCountX = Math.floor(LOGICAL_SIZE / gridSize);
+let tileCountY = Math.floor(LOGICAL_SIZE / gridSize);
+
+let snake = [];
+let dx = 1, dy = 0;
+let score = 0;
+let bestScore = Number(localStorage.getItem('buwaya_best') || 0);
+bestText.textContent = `₱${bestScore}B`;
+let food = null;
+let goldenFood = null;
+let moveInterval = null;
+let gameRunning = false;
+let paused = false;
+let speedMs = 120;
+let obstacles = [];
+let obstacleCount = 4;
+let eventActive = null;
+let eventTimer = 0;
+let frameCounter = 0;
+
+/* Utility */
+function tileRandom(maxX = tileCountX, maxY = tileCountY){
+  return { x: Math.floor(Math.random()*maxX), y: Math.floor(Math.random()*maxY) };
+}
+
+/* Difficulty */
+function applyDifficulty(){
+  const d = difficultySelect.value;
+  switch(d){
+    case 'easy': speedMs = 160; gridSize = 24; obstacleCount = 2; break;
+    case 'normal': speedMs = 110; gridSize = 20; obstacleCount = 4; break;
+    case 'hard': speedMs = 85; gridSize = 16; obstacleCount = 6; break;
+    case 'insane': speedMs = 60; gridSize = 12; obstacleCount = 10; break;
+    default: speedMs = 110; gridSize = 20; obstacleCount = 4;
+  }
+  tileCountX = Math.floor(LOGICAL_SIZE / gridSize);
+  tileCountY = Math.floor(LOGICAL_SIZE / gridSize);
+}
+
+/* Adjust canvas DPI & visual scale to container size.
+   Keeps the drawing coordinate system at LOGICAL_SIZE,
+   while mapping to the actual pixel backing store for crisp output.
+*/
+function adjustCanvasForDPI() {
+  // find visual display size of canvas (CSS pixels)
+  const rect = canvas.getBoundingClientRect();
+  const visualW = Math.max(1, Math.floor(rect.width));
+  const visualH = Math.max(1, Math.floor(rect.height));
+  const DPR = window.devicePixelRatio || 1;
+
+  // backing store size should be visual size * DPR
+  canvas.width = Math.round(visualW * DPR);
+  canvas.height = Math.round(visualH * DPR);
+
+  // compute scale to map LOGICAL_SIZE -> visual size
+  const scaleX = visualW / LOGICAL_SIZE;
+  const scaleY = visualH / LOGICAL_SIZE;
+  const scale = Math.min(scaleX, scaleY); // should be equal since aspect ratio 1/1
+
+  // set transform so that drawing code can still use 0..LOGICAL_SIZE coordinates
+  ctx.setTransform(DPR * scale, 0, 0, DPR * scale, 0, 0);
+}
+
+/* Game initialization & spawns */
+function resetGameState(){
+  applyDifficulty();
+  snake = [{ x: Math.floor(tileCountX/2), y: Math.floor(tileCountY/2) }];
+  dx = 1; dy = 0;
+  score = 0;
+  eventActive = null;
+  eventTimer = 0;
+  obstacles = [];
+
+  if (obstaclesToggle.checked) {
+    for (let i=0;i<obstacleCount;i++){
+      let o = tileRandom();
+      if (o.x === snake[0].x && o.y === snake[0].y) { i--; continue; }
+      obstacles.push(o);
+    }
+  }
+
+  placeFood();
+  placeGoldenFood();
+  updateScoreText();
+  eventBadge.textContent = 'No Event';
+}
+
+function placeFood(){
+  let f = tileRandom();
+  while (snake.some(s => s.x === f.x && s.y === f.y) ||
+         obstacles.some(o => o.x === f.x && o.y === f.y) ||
+         (goldenFood && goldenFood.x === f.x && goldenFood.y === f.y)) {
+    f = tileRandom();
+  }
+  food = f;
+}
+
+function placeGoldenFood(){
+  if (Math.random() < 0.15) {
+    let g = tileRandom();
+    while (snake.some(s => s.x === g.x && s.y === g.y) ||
+           obstacles.some(o => o.x === g.x && o.y === g.y) ||
+           (food && food.x === g.x && food.y === g.y)) {
+      g = tileRandom();
+    }
+    goldenFood = g;
+  } else goldenFood = null;
+}
+
+/* Rendering helpers */
+function drawRoundedRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); ctx.fill(); }
+
+function draw(){
+  if (!snake || snake.length === 0) return;
+
+  frameCounter++;
+  // clear logical area
+  ctx.clearRect(0,0,LOGICAL_SIZE,LOGICAL_SIZE);
+
+  // background
+  ctx.fillStyle = '#001212';
+  ctx.fillRect(0,0,LOGICAL_SIZE,LOGICAL_SIZE);
+
+  // faint grid glow
+  ctx.save(); ctx.globalAlpha = 0.03; ctx.fillStyle = '#00ff66';
+  for (let gx=0; gx<tileCountX; gx++){
+    for (let gy=0; gy<tileCountY; gy++){
+      ctx.fillRect(gx*gridSize+1, gy*gridSize+1, gridSize-2, gridSize-2);
+    }
+  }
+  ctx.restore();
+
+  // obstacles
+  ctx.save();
+  obstacles.forEach(o => {
+    ctx.fillStyle = '#331111';
+    drawRoundedRect(o.x*gridSize+2, o.y*gridSize+2, gridSize-4, gridSize-4, 4);
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(o.x*gridSize+3, o.y*gridSize+3, gridSize-6, gridSize-6);
+    ctx.globalAlpha = 1;
+  });
+  ctx.restore();
+
+  // snake body
+  for (let i = snake.length - 1; i >= 1; i--) {
+    const seg = snake[i];
+    const sx = seg.x * gridSize, sy = seg.y * gridSize;
+    ctx.save();
+    const fade = 0.4 + 0.6 * (i / Math.max(1, snake.length));
+    ctx.globalAlpha = fade;
+    ctx.fillStyle = '#00ff88';
+    drawRoundedRect(sx+2, sy+2, gridSize-4, gridSize-4, 4);
+    ctx.restore();
+  }
+
+  // head
+  const head = snake[0];
+  const hx = head.x * gridSize, hy = head.y * gridSize;
+  const headPulse = Math.sin(frameCounter * 0.18) * 0.06 + 1.0;
+  const headSize = (gridSize - 4) * headPulse;
+
+  ctx.save();
+  ctx.translate(hx + gridSize/2, hy + gridSize/2);
+  let angle = 0;
+  if (dx === 1) angle = 0;
+  if (dx === -1) angle = Math.PI;
+  if (dy === -1) angle = -Math.PI/2;
+  if (dy === 1) angle = Math.PI/2;
+  ctx.rotate(angle);
+  if (headImage.complete && headImage.naturalWidth !== 0) ctx.drawImage(headImage, -headSize/2, -headSize/2, headSize, headSize);
+  else { ctx.fillStyle = '#00ff66'; drawRoundedRect(-headSize/2, -headSize/2, headSize, headSize, 6); }
+  ctx.restore();
+
+  // food
+  if (food) {
+    const fx = food.x * gridSize + gridSize/2;
+    const fy = food.y * gridSize + gridSize/2;
+    const bob = Math.sin(frameCounter * 0.25) * 4;
+    const spin = (frameCounter * 0.06) % (Math.PI*2);
+    ctx.save();
+    ctx.translate(fx, fy + bob);
+    ctx.rotate(spin);
+    const fsize = gridSize - 6;
+    if (foodImage.complete && foodImage.naturalWidth !== 0) ctx.drawImage(foodImage, -fsize/2, -fsize/2, fsize, fsize);
+    else { ctx.fillStyle = '#ffd700'; drawRoundedRect(-fsize/2, -fsize/2, fsize, fsize, 6); }
+    ctx.restore();
+  }
+
+  // golden food
+  if (goldenFood) {
+    const gx = goldenFood.x * gridSize + gridSize/2;
+    const gy = goldenFood.y * gridSize + gridSize/2;
+    const bob = Math.cos(frameCounter * 0.35) * 6;
+    ctx.save();
+    ctx.translate(gx, gy + bob);
+    const gsize = gridSize - 2;
+    ctx.beginPath(); ctx.fillStyle = 'rgba(255,215,0,0.12)'; ctx.arc(0,0,gsize*0.9,0,Math.PI*2); ctx.fill();
+    if (goldFoodImage.complete && goldFoodImage.naturalWidth !== 0) ctx.drawImage(goldFoodImage, -gsize/2, -gsize/2, gsize, gsize);
+    else { ctx.fillStyle = '#ffd700'; drawRoundedRect(-gsize/2, -gsize/2, gsize, gsize, 6); }
+    ctx.restore();
+  }
+
+  // border
+  ctx.save(); ctx.strokeStyle = 'rgba(0,255,102,0.06)'; ctx.lineWidth = 1; ctx.strokeRect(0.5,0.5,LOGICAL_SIZE-1,LOGICAL_SIZE-1); ctx.restore();
+}
+
+/* Game logic */
+function step(){
+  if (!gameRunning || paused) return;
+
+  const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+  head.x = (head.x + tileCountX) % tileCountX;
+  head.y = (head.y + tileCountY) % tileCountY;
+
+  // optional obstacle movement
+  if (obstaclesToggle.checked && Math.random() < 0.1) {
+    obstacles.forEach(o => {
+      if (Math.random() < 0.12) {
+        const dir = Math.floor(Math.random()*4);
+        const nx = (o.x + (dir===0?1:dir===1?-1:0) + tileCountX) % tileCountX;
+        const ny = (o.y + (dir===2?1:dir===3?-1:0) + tileCountY) % tileCountY;
+        if (!(nx === head.x && ny === head.y)) { o.x = nx; o.y = ny; }
+      }
+    });
+  }
+
+  snake.unshift(head);
+
+  if (obstacles.some(o => o.x === head.x && o.y === head.y)) return endGame();
+
+  for (let i=1;i<snake.length;i++){
+    if (head.x === snake[i].x && head.y === snake[i].y) return endGame();
+  }
+
+  if (goldenFood && head.x === goldenFood.x && head.y === goldenFood.y) {
+    score += 5; playSound(sndEat); goldenFood = null;
+    for (let i=0;i<2;i++) placeFood();
+    updateScoreText(); maybeTriggerEvent();
+  } else if (food && head.x === food.x && head.y === food.y) {
+    const gained = (eventActive === 'double') ? 2 : 1;
+    score += gained; playSound(sndEat); placeFood();
+    if (Math.random() < 0.12) placeGoldenFood();
+    updateScoreText();
+  } else {
+    snake.pop();
+  }
+
+  if (eventActive) {
+    eventTimer--;
+    if (eventTimer <= 0) { eventActive = null; eventBadge.textContent = 'No Event'; }
+  }
+}
+
+/* events & helpers */
+function maybeTriggerEvent(){
+  const r = Math.random();
+  if (r < 0.08) { eventActive = 'double'; eventTimer = Math.floor(12 + Math.random()*12); eventBadge.textContent = 'DOUBLE ₱ (x2)'; }
+  else if (r >= 0.08 && r < 0.14) { eventActive = 'gold'; eventTimer = Math.floor(8 + Math.random()*10); eventBadge.textContent = 'GOLDEN RAIN'; placeGoldenFood(); }
+}
+
+function endGame(){
+  gameRunning = false;
+  clearInterval(moveInterval);
+  playSound(sndGameOver);
+  bgm.pause();
+  if (score > bestScore) {
+    bestScore = score; localStorage.setItem('buwaya_best', bestScore); bestText.textContent = `₱${bestScore}B`;
+    setTimeout(()=> alert(`Game Over — NEW RECORD! ₱${score}B`), 10);
+  } else setTimeout(()=> alert(`Game Over — Final Score: ₱${score}B`), 10);
+}
+
+/* input */
+function changeDirection(newDx, newDy){
+  if (newDx === -dx && newDy === -dy) return;
+  dx = newDx; dy = newDy;
+}
+document.addEventListener('keydown', e => {
+  if (!gameRunning) return;
+  if (e.key === 'ArrowLeft') changeDirection(-1,0);
+  if (e.key === 'ArrowRight') changeDirection(1,0);
+  if (e.key === 'ArrowUp') changeDirection(0,-1);
+  if (e.key === 'ArrowDown') changeDirection(0,1);
+});
+upBtn.onclick = () => changeDirection(0,-1);
+downBtn.onclick = () => changeDirection(0,1);
+leftBtn.onclick = () => changeDirection(-1,0);
+rightBtn.onclick = () => changeDirection(1,0);
+
+/* touch swipe */
+let touchStartX=0, touchStartY=0;
+canvas.addEventListener('touchstart', e => { const t = e.touches[0]; touchStartX = t.clientX; touchStartY = t.clientY; }, {passive:true});
+canvas.addEventListener('touchend', e => {
+  if (!gameRunning) return;
+  const t = e.changedTouches[0];
+  const dxT = t.clientX - touchStartX, dyT = t.clientY - touchStartY;
+  if (Math.abs(dxT) > Math.abs(dyT)) {
+    if (dxT > 20) changeDirection(1,0);
+    else if (dxT < -20) changeDirection(-1,0);
+  } else {
+    if (dyT > 20) changeDirection(0,1);
+    else if (dyT < -20) changeDirection(0,-1);
+  }
+}, {passive:true});
+
+/* sound helper */
+function playSound(a){ try{ a.currentTime = 0; a.volume = 0.9; a.play(); }catch(e){} }
+function updateScoreText(){ scoreText.textContent = `₱${score}B`; }
+
+/* controls */
+startBtn.addEventListener('click', () => {
+  if (gameRunning) return;
+  resetGameState();
+  gameRunning = true; paused = false;
+  playSound(sndStart);
+  setTimeout(()=>{ try{ bgm.currentTime = 0; bgm.volume = 0.25; bgm.play(); }catch(e){} }, 200);
+  if (moveInterval) clearInterval(moveInterval);
+  moveInterval = setInterval(step, speedMs);
+});
+pauseBtn.addEventListener('click', () => {
+  if (!gameRunning) return;
+  paused = !paused;
+  pauseBtn.textContent = paused ? 'RESUME' : 'PAUSE';
+  if (paused) bgm.pause(); else try{ bgm.play(); }catch(e){}
+});
+resetBtn.addEventListener('click', () => {
+  clearInterval(moveInterval); gameRunning=false; paused=false; resetGameState(); bgm.pause(); bgm.currentTime=0;
+});
+difficultySelect.addEventListener('change', () => { resetGameState(); });
+obstaclesToggle.addEventListener('change', () => { resetGameState(); });
+
+/* startup: ensure canvas resize logic runs when container changes */
+function onResize(){
+  adjustCanvasForDPI();
+  // redraw immediately so UI feels responsive
+  draw();
+}
+window.addEventListener('resize', onResize);
+new ResizeObserver(onResize).observe(document.querySelector('.canvas-wrap'));
+
+/* initialize and start animation loop after initial sizing */
+applyDifficulty();
+adjustCanvasForDPI();
+resetGameState();
+
+(function animLoop(){
+  draw();
+  requestAnimationFrame(animLoop);
+})();
+
+/* golden spawn while idle */
+setInterval(()=>{ if (!goldenFood && Math.random() < 0.03) placeGoldenFood(); }, 2000);
+
+</script>
 </body>
 </html>
