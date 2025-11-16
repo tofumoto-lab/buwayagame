@@ -1,27 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flood Control</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<title>Snake Game</title>
+<style>
+    body {
+        background: #111;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: white;
+        font-family: Arial;
+    }
+    #gameCanvas {
+        background: #000;
+        margin-top: 20px;
+        border: 3px solid #0f0;
+    }
+    .controls {
+        margin-top: 20px;
+    }
+    .controls button {
+        padding: 15px;
+        margin: 3px;
+        font-size: 20px;
+        border-radius: 10px;
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Flood Control</h1>
-        <p>Help to get the 100 Billion</p>
-        <canvas id="gameCanvas" width="400" height="400"></canvas>
-        <div id="score">Score: ₱0B</div>
-        <div class="controls">
-            <button id="leftBtn">←</button>
-            <button id="upBtn">↑</button>
-            <button id="downBtn">↓</button>
-            <button id="rightBtn">→</button>
-        </div>
-        <button id="startBtn">Start Game</button>
+
+<h2 id="score">Score: ₱0B</h2>
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+
+<br>
+<button id="startBtn">START GAME</button>
+
+<div class="controls">
+    <div>
+        <button id="upBtn">⬆</button>
     </div>
-    <script src="script.js"></script>
+    <div>
+        <button id="leftBtn">⬅</button>
+        <button id="downBtn">⬇</button>
+        <button id="rightBtn">➡</button>
+    </div>
+</div>
+
+<script src="game.js"></script>
 </body>
-
 </html>
-
