@@ -20,7 +20,7 @@ let headImage = new Image();
 let foodImage = new Image();
 
 headImage.src = 'buwaya2.png'; // Replace with your PNG file path
-foodImage.src = 'money.png'; // Same image for food
+foodImage.src = 'money.png'; // Replace with your PNG file path
 
 function randomTile() {
     return Math.floor(Math.random() * tileCount);
@@ -155,3 +155,4 @@ downBtn.addEventListener('click', () => changeDirection(0, 1));
 leftBtn.addEventListener('click', () => changeDirection(-1, 0));
 rightBtn.addEventListener('click', () => changeDirection(1, 0));
 startBtn.addEventListener('click', startGame);
+
