@@ -7,7 +7,7 @@ const downBtn = document.getElementById('downBtn');
 const leftBtn = document.getElementById('leftBtn');
 const rightBtn = document.getElementById('rightBtn');
 
-const gridSize = 40;
+const gridSize = 30;
 const tileCount = canvas.width / gridSize;
 
 let snake = [{ x: 10, y: 10 }];
@@ -72,7 +72,7 @@ function moveSnake() {
 
     if (head.x === food.x && head.y === food.y) {
         score++;
-        scoreElement.textContent = `Score: ₱${score}`;
+        scoreElement.textContent = `Score: ₱${score}B`;
         generateFood();
     } else {
         snake.pop();
@@ -96,7 +96,7 @@ function gameLoop() {
     moveSnake();
     if (checkCollision()) {
         gameRunning = false;
-        alert(`Game Over! Final Score: ₱${score}`);
+        alert(`Game Over! Final Score: ₱${score}B`);
         return;
     }
     drawGame();
@@ -142,11 +142,11 @@ function startGame() {
     dx = 0;
     dy = 0;
     score = 0;
-    scoreElement.textContent = 'Score: ₱0';
+    scoreElement.textContent = 'Score: ₱0B';
     generateFood();
     gameRunning = true;
     drawGame();
-    setInterval(gameLoop, 100);
+    setInterval(gameLoop, 90); // Slowed down from 100ms to 200ms
 }
 
 document.addEventListener('keydown', handleKey);
